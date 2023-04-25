@@ -5,7 +5,7 @@ import {
 } from "../typechain-types";
 
 async function main() {
-  const tokenAddress =""
+  const tokenAddress ="0xE097d6B3100777DC31B34dC2c58fB524C2e76921"
   const [deployer] = await ethers.getSigners()
 
   console.log("Deploing with that account:", deployer.address)

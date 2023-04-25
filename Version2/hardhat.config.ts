@@ -1,11 +1,12 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import dotenv from 'dotenv';
+dotenv.config();
 
-const INFURA_API_KEY = ""
-const SEPOLIA_PRIVATE_KEY = ""
-const mumbai_API_URL =''
-const mumbai_PRIVATE_KEY=""
 
+
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY;
 
 module.exports = {
   solidity: "0.8.17",
@@ -18,10 +19,11 @@ module.exports = {
     },
     polygon_mumbai: {
       url: "https://rpc-mumbai.maticvigil.com",
-      accounts: [process.env.PRIVATE_KEY]
+      accounts: ["PrivateKey"]
     },
-    etherscan: {
-      apiKey: process.env.POLYGONSCAN_API_KEY
-    },
+  },
+  etherscan: {
+    url: "https://api.polygonscan.com/api",
+    apiKey: "ApiEtherScan"
   }
 };

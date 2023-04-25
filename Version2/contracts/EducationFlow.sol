@@ -30,9 +30,10 @@ contract EducationPlatform is Ownable {
     //address withdrawAddr;
 
     mapping (uint => Expert) public expertById;
-    mapping (address => bool) public isRegistered;
+    mapping (address => bool) public isExpertRegistered;
     mapping (address => mapping (uint => DonatingInfo)) public userDonation;
     mapping (address => RegistrationRequest) public registrationRequests;
+    mapping (address => bool) public isUserRegistered;
     
     // Data about our experts like ADDRESS, NAME, BALANCE and VOTES for this expert
 
@@ -74,12 +75,16 @@ contract EducationPlatform is Ownable {
     constructor(address _USDT) {
         USDT = IERC20(_USDT);
     }
+    
+    function register() external{
+        isUserRegistered[_msgSender()] = true;
+    }
 
     // Here function get string "Name of Expert" and scan its addres, then make request to register
     // after some requrements checks 
     function registerAsExpert(string memory _name) external {
 
-        require(!isRegistered[_msgSender()], "You already registered");
+        require(!isExpertRegistered[_msgSender()], "You already registered");
         require(registrationRequests[_msgSender()].registrationStatus == Register.None, 'Your request already created');
         address _expertAddr = _msgSender();
         registrationRequests[_expertAddr].name = _name;
@@ -90,12 +95,12 @@ contract EducationPlatform is Ownable {
     
     // Deployer of smart-contract can approve any of the users request and register him as Expert
     function approveExpert(address _expertAddr) external onlyOwner {
-        require(!isRegistered[_expertAddr], "This Expert already registered");
+        require(!isExpertRegistered[_expertAddr], "This Expert already registered");
         require(registrationRequests[_expertAddr].registrationStatus != Register.None, "This request not exist");
         
         uint expertId = _expertId.current();
         
-        isRegistered[_expertAddr] = true;
+        isExpertRegistered[_expertAddr] = true;
         registrationRequests[_expertAddr].registrationStatus = Register.Done;
 
         expertById[expertId].expertAddress = _expertAddr;
@@ -106,10 +111,10 @@ contract EducationPlatform is Ownable {
     }
     
     // After all experts registration, contract Owner should to start round by giving function latency in days
-    function startRound(uint _timeInDays, uint _roundRevardsPoints) external onlyOwner {
+    function startRound(uint _timeInHours, uint _roundRevardsPoints) external onlyOwner {
         require(!round.roundActive, "Round already active");
-        uint _dayInSec = 1000*60*60*24;
-        uint _endTime = block.timestamp + _timeInDays * _dayInSec;
+        uint _hourInMillisecconds = 1000*60*60;
+        uint _endTime = block.timestamp + _timeInHours * _hourInMillisecconds;
         
         round.roundActive = true;
         round.endTime = _endTime;
@@ -122,6 +127,7 @@ contract EducationPlatform is Ownable {
     // in USDT, then some votes adding for expert in this round if he 
     // not voted for this expert in this round yet
     function donateInUSDT(uint _id, uint _amount) external{
+        require(isUserRegistered[_msgSender()], "You not registered");
         require(USDT.balanceOf(_msgSender()) >= _amount, "You havent enougth USDT");
         require(USDT.allowance(_msgSender(), address(this)) >= _amount, "You need to approve mote USDT to donate this");
         require(expertById[_id].expertAddress != address(0), "Expert not exist");
@@ -146,6 +152,7 @@ contract EducationPlatform is Ownable {
     // funding revard to experts wallet
     function transferTokensToExpert(uint _id) external onlyOwner{
         //require(round.endTime < block.timestamp, "Round not finished yet");
+        require(round.totalVotes > 0, "Panic! Please add votes");
         require(expertById[_id].expertAddress != address(0), "Expert not exist");
         require(expertById[_id].status == CourseStatus.Pending, "This is already not actual");
         expertById[_id].status = CourseStatus.Done;

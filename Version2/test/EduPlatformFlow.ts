@@ -52,6 +52,9 @@ describe("EDU Platform", async() => {
 
         expect(await usdt.totalSupply()).deep.equal("1000000000000000000000000") // total supply of USDT with 18 decimals
         expect(await edu.owner()).equal(deployer.address)
+        await edu.connect(user1).register()
+        await edu.connect(user2).register()
+        await edu.connect(user3).register()
     })
 
     describe("Register Investor",async () => {
@@ -84,15 +87,15 @@ describe("EDU Platform", async() => {
 
             expect((await edu.registrationRequests(Expert)).registrationStatus).equal(Register.Pending)
             expect((await edu.registrationRequests(Expert2)).registrationStatus).equal(Register.Pending)
-            expect(await edu.isRegistered(Expert)).equal(false)
-            expect(await edu.isRegistered(Expert2)).equal(false)
+            expect(await edu.isExpertRegistered(Expert)).equal(false)
+            expect(await edu.isExpertRegistered(Expert2)).equal(false)
             
             await edu.approveExpert(Expert)
             await edu.approveExpert(Expert2)
             expect((await edu.registrationRequests(Expert)).registrationStatus).equal(Register.Done)
             expect((await edu.registrationRequests(Expert2)).registrationStatus).equal(Register.Done)
-            expect(await edu.isRegistered(Expert)).equal(true)
-            expect(await edu.isRegistered(Expert2)).equal(true)
+            expect(await edu.isExpertRegistered(Expert)).equal(true)
+            expect(await edu.isExpertRegistered(Expert2)).equal(true)
             expect((await edu.expertById(0)).expertAddress).equal(Expert)
             expect((await edu.expertById(1)).expertAddress).equal(Expert2)
 

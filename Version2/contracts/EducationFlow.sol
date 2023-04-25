@@ -3,18 +3,15 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-
 //  Interface for ERC20 stablecoins as USDT, DAI, BUSD etc.
 //  In this version i used only USDT for payments. In next versions it will be possible to
 //  pay by various tokens.
-interface IERC20 {                                                                              
-    function transferFrom(address from,address to, uint amount) external;                       
-    function balanceOf(address account) external view returns (uint256);
-    function transfer(address to, uint amount) external;
-    function decimals() external view returns (uint8);
-    function approve(address spender, uint amount) external;
-    function allowance(address owner, address spender) external view returns(uint256);
-}
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+
+
+
+
 
 // Start of the smart contract for DAO education platform
 // This version supprots only one round of quadraticFounring
@@ -45,6 +42,7 @@ contract EducationPlatform is Ownable {
         uint expertId;
         uint votes;
         uint balance;
+        uint rewardPoints;
         CourseStatus status;
     }
 
@@ -79,20 +77,19 @@ contract EducationPlatform is Ownable {
 
     // Here function get string "Name of Expert" and scan its addres, then make request to register
     // after some requrements checks 
-    function registerAsExpert(string memory _name) public {
-        address _expertAddr = _msgSender();
+    function registerAsExpert(string memory _name) external {
 
         require(!isRegistered[_msgSender()], "You already registered");
-        require(registrationRequests[_expertAddr].registrationStatus == Register.None, 'Your request already created');
-
+        require(registrationRequests[_msgSender()].registrationStatus == Register.None, 'Your request already created');
+        address _expertAddr = _msgSender();
         registrationRequests[_expertAddr].name = _name;
         registrationRequests[_expertAddr].userAddress = _expertAddr;
         registrationRequests[_expertAddr].registrationStatus = Register.Pending;
-        //emit event of registering
+        emit RegistrationRequested(_name, _expertAddr);
     }
-
+    
     // Deployer of smart-contract can approve any of the users request and register him as Expert
-    function approveExpert(address _expertAddr) public onlyOwner {
+    function approveExpert(address _expertAddr) external onlyOwner {
         require(!isRegistered[_expertAddr], "This Expert already registered");
         require(registrationRequests[_expertAddr].registrationStatus != Register.None, "This request not exist");
         
@@ -105,78 +102,90 @@ contract EducationPlatform is Ownable {
         expertById[expertId].expertId = expertId;
         expertById[expertId].expertName = registrationRequests[_expertAddr].name;
         _expertId.increment();
-        //emit event
+        emit RegistrationApproved(expertById[expertId].expertName, _expertAddr, expertId);
     }
-
+    
     // After all experts registration, contract Owner should to start round by giving function latency in days
-    function startRound(uint _timeInDays, uint _roundBudgetUSDT) public onlyOwner {
+    function startRound(uint _timeInDays, uint _roundRevardsPoints) external onlyOwner {
         require(!round.roundActive, "Round already active");
-        require(USDT.balanceOf(_msgSender()) >= _roundBudgetUSDT, "You havent enougth USDT");
-        require(USDT.allowance(_msgSender(), address(this)) >= _roundBudgetUSDT, "You need to approve mote USDT to start round with that budget");
-        
         uint _dayInSec = 1000*60*60*24;
         uint _endTime = block.timestamp + _timeInDays * _dayInSec;
         
         round.roundActive = true;
         round.endTime = _endTime;
-        round.budget = _roundBudgetUSDT;
+        round.budget = _roundRevardsPoints;
         round.startTime = block.timestamp;
-        USDT.transferFrom(_msgSender(), address(this), _roundBudgetUSDT);
+        emit RoundStarted(round.startTime, round.endTime, round.budget);
     }
-
+    
     // Native users allow to donate any existing expert some funds
     // in USDT, then some votes adding for expert in this round if he 
     // not voted for this expert in this round yet
-    function donateInUSDT(uint _id, uint _amount) public{
+    function donateInUSDT(uint _id, uint _amount) external{
         require(USDT.balanceOf(_msgSender()) >= _amount, "You havent enougth USDT");
         require(USDT.allowance(_msgSender(), address(this)) >= _amount, "You need to approve mote USDT to donate this");
         require(expertById[_id].expertAddress != address(0), "Expert not exist");
-        
+        bool _isVoteAdded;
         USDT.transferFrom(_msgSender(), address(this), _amount);
         if(round.startTime < block.timestamp && block.timestamp < round.endTime && !round.isUserDonatedToExpertInRound[_msgSender()][_id]){
             round.totalVotes++;
             expertById[_id].votes++;
             round.isUserDonatedToExpertInRound[_msgSender()][_id] = true;
+            _isVoteAdded = true;
         }
         expertById[_id].balance+= _amount;
         userDonation[_msgSender()][_id].isDonated = true;
         userDonation[_msgSender()][_id].amountOfDonations+= _amount;
+        emit Donate(_msgSender(), _id, _amount, _isVoteAdded);
     }
+    
 
 
     // After round ending and expert produced his course, 
     // contract Owner can approve that and transfer his donation and
     // funding revard to experts wallet
-    function transferTokensToExpert(uint _id) public onlyOwner{
+    function transferTokensToExpert(uint _id) external onlyOwner{
         //require(round.endTime < block.timestamp, "Round not finished yet");
         require(expertById[_id].expertAddress != address(0), "Expert not exist");
         require(expertById[_id].status == CourseStatus.Pending, "This is already not actual");
         expertById[_id].status = CourseStatus.Done;
         uint balance = expertById[_id].balance;
-        uint revard = round.budget * expertById[_id].votes / round.totalVotes;
+        uint reward = round.budget * expertById[_id].votes / round.totalVotes;
         expertById[_id].balance = 0;
-        USDT.transfer(expertById[_id].expertAddress, balance+revard);
+        USDT.transfer(expertById[_id].expertAddress, balance);
+        expertById[_id].rewardPoints+=reward;
+        emit TransferDonationsToExpert(_id, balance, reward);
     }
-
-    function OnMoneyBack(uint _id) public onlyOwner{
+    
+    function OnMoneyBack(uint _id) external onlyOwner{
         //require(round.endTime < block.timestamp, "Round not finished yet");
         require(expertById[_id].expertAddress != address(0), "Expert not exist");
         require(expertById[_id].status == CourseStatus.Pending, "This is already not actual");
         expertById[_id].status = CourseStatus.Canceled;
+        emit EnableMoneyBack(_id);
     }
-
-    function getMoneyBack(uint _id) public {
+    
+    function getMoneyBack(uint _id) external {
         //require(round.endTime < block.timestamp, "Round not finished yet");
         require(expertById[_id].expertAddress != address(0), "Expert not exist");
         require(expertById[_id].status == CourseStatus.Canceled, "This course not canceled");
-        uint donated = userDonation[_msgSender()][_id].amountOfDonations;
         require(0 < userDonation[_msgSender()][_id].amountOfDonations, "Nothing to withdraw");
+        uint donated = userDonation[_msgSender()][_id].amountOfDonations;
         userDonation[_msgSender()][_id].amountOfDonations = 0;
         expertById[_id].balance -= donated;
         USDT.transfer(_msgSender(), donated);
+        emit GotMoneyBack(_id, donated, _msgSender());
     }
-}
 
+    event EnableMoneyBack (uint _expertId);
+    event GotMoneyBack (uint _expertId, uint _amount, address _user);
+    event RegistrationRequested(string _name, address _expertAddress);
+    event RoundStarted(uint _startTime, uint _endTime, uint _revardsAmount );
+    event RegistrationApproved(string _name, address _expertAddress, uint _id );
+    event TransferDonationsToExpert (uint _expertId, uint _transfered, uint _rewardPoints);
+    event Donate(address _sender, uint _expertId, uint _revardsAmount, bool _isVoteAdded );
+    
+}
 
 
 

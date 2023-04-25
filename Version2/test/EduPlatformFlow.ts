@@ -119,13 +119,7 @@ describe("EDU Platform", async() => {
     describe("Starting round", async () => {
 
         it("[DEPLOYER] Should to start round", async() =>{
-            let budget = ((BigNumber.from(10)).pow(18)).mul(100000000)
-            await expect(edu.startRound(1, budget)).to.be.revertedWith('You havent enougth USDT')
-
-            budget = ((BigNumber.from(10)).pow(18)).mul(10)
-            await expect(edu.startRound(1, budget)).to.be.revertedWith('You need to approve mote USDT to start round with that budget')
-
-            await usdt.approve(edu.address, budget)
+            let budget = ((BigNumber.from(10)).pow(18)).mul(10)
             await edu.startRound(1, budget)
             
             expect((await edu.round()).roundActive).equal(true)
@@ -188,12 +182,13 @@ describe("EDU Platform", async() => {
             let budget = (await edu.round()).budget
             let donations = (await edu.expertById(0)).balance
             let startBalance = await usdt.balanceOf(expert.address)
-            let revard = ((await edu.round()).budget).div(2)
+            let reward = ((await edu.round()).budget).div(2)
             await edu.transferTokensToExpert(0)
             expect((await edu.expertById(0)).status).equal(CourseStatus.Done)
             await expect(edu.transferTokensToExpert(0)).to.be.revertedWith('This is already not actual')
             expect((await usdt.balanceOf(expert.address)).sub(startBalance))
-                .equal(donations.add(revard)) // shold to correctly transfer funds to expert
+                .equal(donations) // shold to correctly transfer funds to expert
+            expect((await edu.expertById(0)).rewardPoints).equal(reward)
         })
 
         it("[DEPLOYER] Cant transfer for expert if course Status DONE or CANCELED", async () => {

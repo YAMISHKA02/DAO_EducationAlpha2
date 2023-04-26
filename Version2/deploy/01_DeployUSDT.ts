@@ -1,27 +1,30 @@
 import { ethers } from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { network } from "hardhat"
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
 import { 
   MockUSDT, MockUSDT__factory,
   EducationPlatform, EducationPlatform__factory 
 } from "../typechain-types";
 
-const deployFunction: DeployFunction = async ({ getNamedAccounts, deployments }) => {
+const deployFunction: DeployFunction = async ({ getNamedAccounts, deployments, getChainId }) => {
   
   const { deploy, log } = deployments
-  const usdt = await ethers.getContract("MockUSDT")
-  const { deployer } = await getNamedAccounts()
-  const onstructorArgs = [usdt.address]
+  const [ deployer ] = await ethers.getSigners()
+  console.log(' USDT Deploy...')
 
-  const contract = await deploy("EducationPlatform", {
-    from: deployer,
-    args: onstructorArgs,
+  const contract = await deploy("MockUSDT", {
+    from: deployer.address,
+    args: [],
     log: true
   })
+  console.log(" Deploy USDT executed..")
+  console.log(`USDT contract address: [${contract.address}]`)
 }
 
 export default deployFunction
-deployFunction.tags = [`all`, `edu`]
+deployFunction.tags = [`all`, `usdt`]
 /*async function main() {
   
   const [deployer] = await ethers.getSigners()

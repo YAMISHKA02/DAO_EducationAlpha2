@@ -47,14 +47,12 @@ describe("EDU Platform", async() => {
             edu  = await EDU.deploy(usdt.address)
             */
         [deployer, expert, expert2, user1, user2, user3] = await ethers.getSigners()
-        await deployments.fixture([`usdt`, 'edu'])
+        await deployments.fixture(['usdt', 'edu'])
         usdt = await ethers.getContract('MockUSDT')
         edu  = await ethers.getContract('EducationPlatform')
-
     })
 
     it("Should to deploy", async () => {
-
         expect(await usdt.totalSupply()).deep.equal("1000000000000000000000000") // total supply of USDT with 18 decimals
         expect(await edu.owner()).equal(deployer.address)
         await edu.connect(user1).register()

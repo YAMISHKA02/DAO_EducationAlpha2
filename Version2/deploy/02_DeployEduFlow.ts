@@ -1,26 +1,28 @@
 import { ethers } from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { network } from "hardhat"
-
 import { 
   MockUSDT, MockUSDT__factory,
   EducationPlatform, EducationPlatform__factory 
 } from "../typechain-types";
 
-const deployFunction: DeployFunction = async ({ getNamedAccounts, deployments, getChainId }) => {
-  
+const deployFunction: DeployFunction = async ({ getNamedAccounts, deployments }) => {
   const { deploy, log } = deployments
-  const { deployer } = await getNamedAccounts()
-  console.log('USDT Deploy...')
-
-  const contract = await deploy("MockUSDT", {
-    from: deployer,
+  const usdt = await ethers.getContract("MockUSDT")
+  const [ deployer ] = await ethers.getSigners()
+  const onstructorArgs = [usdt.address]
+  console.log("Deploy EDUflow...")
+  const contract = await deploy("EducationPlatform", {
+    from: deployer.address,
+    args: onstructorArgs,
     log: true
   })
+  console.log(`SUCCES! contract address = ${contract.address}`)
+  
 }
 
 export default deployFunction
-deployFunction.tags = [`all`, `usdt`]
+deployFunction.tags = [`all`, `edu`]
 /*async function main() {
   
   const [deployer] = await ethers.getSigners()

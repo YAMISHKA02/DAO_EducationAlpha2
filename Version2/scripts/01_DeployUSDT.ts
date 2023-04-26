@@ -1,10 +1,27 @@
 import { ethers } from "hardhat";
+import { DeployFunction } from "hardhat-deploy/dist/types";
+import { network } from "hardhat"
+
 import { 
   MockUSDT, MockUSDT__factory,
   EducationPlatform, EducationPlatform__factory 
 } from "../typechain-types";
 
-async function main() {
+const deployFunction: DeployFunction = async ({ getNamedAccounts, deployments, getChainId }) => {
+  
+  const { deploy, log } = deployments
+  const { deployer } = await getNamedAccounts()
+  console.log('USDT Deploy...')
+
+  const contract = await deploy("MockUSDT", {
+    from: deployer,
+    log: true
+  })
+}
+
+export default deployFunction
+deployFunction.tags = [`all`, `usdt`]
+/*async function main() {
   
   const [deployer] = await ethers.getSigners()
 
@@ -28,3 +45,4 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
+*/

@@ -1,7 +1,7 @@
 import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { deployments, ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {BigNumber} from "ethers";
 import { Register, CourseStatus} from "./utils";
@@ -39,12 +39,17 @@ describe("EDU Platform", async() => {
     
 
     before(async()=>{
-
+/*
+            [deployer, expert, expert2, user1, user2, user3] = await ethers.getSigners()
+            USDT = await ethers.getContractFactory("MockUSDT")
+            usdt = await USDT.deploy()
+            EDU  = await ethers.getContractFactory("EducationPlatform")
+            edu  = await EDU.deploy(usdt.address)
+            */
         [deployer, expert, expert2, user1, user2, user3] = await ethers.getSigners()
-        USDT = await ethers.getContractFactory("MockUSDT")
-        usdt = await USDT.deploy()
-        EDU  = await ethers.getContractFactory("EducationPlatform")
-        edu  = await EDU.deploy(usdt.address)
+        await deployments.fixture([`usdt`, 'edu'])
+        usdt = await ethers.getContract('MockUSDT')
+        edu  = await ethers.getContract('EducationPlatform')
 
     })
 

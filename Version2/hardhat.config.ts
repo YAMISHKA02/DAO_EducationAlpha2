@@ -1,8 +1,9 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "@nomiclabs/hardhat-ethers"
 import "hardhat-deploy";
-import dotenv from 'dotenv';
-dotenv.config();
+import * as dotenv from "dotenv";
+dotenv.config({ path: '/Users/yamishka/Documents/GitHub/DAO_EducationAlpha2/Version2/.env' });
 
 
 
@@ -32,13 +33,15 @@ module.exports = {
       gasPrice: 20000000000,
       accounts: {mnemonic: "12 words"}
     },
-    //polygon_mumbai: {
-      //url: "https://rpc-mumbai.maticvigil.com",
-      //accounts: [""]
-    //},
+    polygon_mumbai: {
+      url: "https://rpc-mumbai.maticvigil.com",
+      accounts: [PRIVATE_KEY]
+    },
   },
   etherscan: {
     url: "https://api.polygonscan.com/api",
-    apiKey: ""
+    apiKey: {
+      polygonMumbai: POLYGONSCAN_API_KEY
+    }
   }
 };

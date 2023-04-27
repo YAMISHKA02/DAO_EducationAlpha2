@@ -39,7 +39,7 @@ describe("EDU Platform", async() => {
     
 
     before(async()=>{
-/*
+            /*
             [deployer, expert, expert2, user1, user2, user3] = await ethers.getSigners()
             USDT = await ethers.getContractFactory("MockUSDT")
             usdt = await USDT.deploy()

@@ -10,14 +10,17 @@ const deployFunction: DeployFunction = async ({ getNamedAccounts, deployments })
   const { deploy, log } = deployments
   const usdt = await ethers.getContract("MockUSDT")
   const [ deployer ] = await ethers.getSigners()
-  const onstructorArgs = [usdt.address]
+  const constructorArgs = [usdt.address]
+  
   console.log("Deploy EDUflow...")
+
   const contract = await deploy("EducationPlatform", {
     from: deployer.address,
-    args: onstructorArgs,
+    args: constructorArgs,
     log: true
   })
-  console.log(`SUCCES! contract address = ${contract.address}`)
+  console.log("Deploy EDU executed")
+
   
 }
 

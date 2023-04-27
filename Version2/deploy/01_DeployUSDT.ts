@@ -19,8 +19,8 @@ const deployFunction: DeployFunction = async ({ getNamedAccounts, deployments, g
     args: [],
     log: true
   })
-  console.log(" Deploy USDT executed..")
-  console.log(`USDT contract address: [${contract.address}]`)
+  console.log("Deploy USDT executed")
+
 }
 
 export default deployFunction

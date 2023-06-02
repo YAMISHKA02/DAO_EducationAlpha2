@@ -9,7 +9,7 @@ import {
     MockUSDT, MockUSDT__factory,
     EducationPlatform, EducationPlatform__factory 
 } from "../typechain-types";
-
+import { mine } from "@nomicfoundation/hardhat-network-helpers";
 
 describe("EDU Platform", async() => {
     
@@ -125,15 +125,18 @@ describe("EDU Platform", async() => {
     describe("Starting round", async () => {
 
         it("[DEPLOYER] Should to start round", async() =>{
+            let curTime = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp+5
             let budget = ((BigNumber.from(10)).pow(18)).mul(10)
-            await edu.startRound(1, budget)
+
+            await edu.startRound(curTime,1, budget)
             
-            expect((await edu.round()).roundActive).equal(true)
+            expect((await edu.round()).roundPlanned).equal(true)
             expect((await edu.round()).budget).equal(budget)
         })
 
         it("[DEPLOYER] Should to revert if round started", async()=>{
-            await expect(edu.startRound(1, 10000)).to.be.revertedWith('Round already active')
+            let curTime = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp + 10
+            await expect(edu.startRound(curTime,1, 10000)).to.be.revertedWith('Round already planned')
         })
     })
 

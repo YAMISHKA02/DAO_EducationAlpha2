@@ -67,7 +67,7 @@ contract EducationPlatform is Ownable {
         uint startTime;
         uint endTime;
         uint totalVotes;
-        bool roundActive;
+        bool roundPlanned;
         mapping(address => mapping (uint => bool)) isUserDonatedToExpertInRound;
     }
     
@@ -111,15 +111,16 @@ contract EducationPlatform is Ownable {
     }
     
     // After all experts registration, contract Owner should to start round by giving function latency in days
-    function startRound(uint _timeInHours, uint _roundRevardsPoints) external onlyOwner {
-        require(!round.roundActive, "Round already active");
+    function startRound(uint _startTimeStapm,uint _timeInHours, uint _roundRevardsPoints) external onlyOwner {
         uint _hourInMillisecconds = 1000*60*60;
-        uint _endTime = block.timestamp + _timeInHours * _hourInMillisecconds;
+        require(!round.roundPlanned, "Round already planned");
+        require(block.timestamp <= _startTimeStapm && (_startTimeStapm - block.timestamp)<= _hourInMillisecconds*24*31);
+        uint _endTime = _startTimeStapm + _timeInHours * _hourInMillisecconds;
         
-        round.roundActive = true;
+        round.roundPlanned = true;
         round.endTime = _endTime;
         round.budget = _roundRevardsPoints;
-        round.startTime = block.timestamp;
+        round.startTime = _startTimeStapm;
         emit RoundStarted(round.startTime, round.endTime, round.budget);
     }
     

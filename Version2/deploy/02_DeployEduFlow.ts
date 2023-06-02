@@ -8,7 +8,7 @@ import {
 
 const deployFunction: DeployFunction = async ({ getNamedAccounts, deployments }) => {
   const { deploy, log } = deployments
-  const usdt = await ethers.getContract("MockUSDT")
+  const usdt = await ethers.getContractAt("MockUSDT", "0x76c89EC523F82e5457f681f8184cd2FFD895B8Cf")
   const [ deployer ] = await ethers.getSigners()
   const constructorArgs = [usdt.address]
   

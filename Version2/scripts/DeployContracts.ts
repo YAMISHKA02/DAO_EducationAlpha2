@@ -18,8 +18,8 @@ async function main() {
   //const usdt = await ethers.getContract("MockUSDT")
   const edu = await ethers.getContract("EducationPlatform")
   
-  console.log(`USDT contract was developed with address: 0x76c89EC523F82e5457f681f8184cd2FFD895B8Cf`);
-  console.log(`EDU contract was developed with address: ${edu.address}`);
+  console.log(`USDT  was developed with address: 0x76c89EC523F82e5457f681f8184cd2FFD895B8Cf`);
+  console.log(`EDU  was developed with address: ${edu.address}`);
 
   //await verify(usdt.address,[])
   await verify(edu.address, ["0x76c89EC523F82e5457f681f8184cd2FFD895B8Cf"])

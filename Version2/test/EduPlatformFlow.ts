@@ -47,7 +47,7 @@ describe("EDU Platform", async() => {
             edu  = await EDU.deploy(usdt.address)
             */
         [deployer, expert, expert2, user1, user2, user3] = await ethers.getSigners()
-        await deployments.fixture(['usdt', 'edu'])
+        await deployments.fixture(['all'])
         usdt = await ethers.getContract('MockUSDT')
         edu  = await ethers.getContract('EducationPlatform')
     })

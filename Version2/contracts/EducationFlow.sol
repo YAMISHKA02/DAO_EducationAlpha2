@@ -185,6 +185,10 @@ contract EducationPlatform is Ownable {
         emit GotMoneyBack(_id, donated, _msgSender());
     }
 
+    function getMockUsdt() external view returns(address){
+        return address(USDT);
+    }
+
     event EnableMoneyBack (uint _expertId);
     event GotMoneyBack (uint _expertId, uint _amount, address _user);
     event RegistrationRequested(string _name, address _expertAddress);

@@ -12,7 +12,7 @@ const deployFunction: DeployFunction = async ({ getNamedAccounts, deployments, g
   
   const { deploy, log } = deployments
   const [ deployer ] = await ethers.getSigners()
-  console.log(' USDT Deploy...')
+  console.log('[DEPLOYER] USDT Deploy...')
 
   const contract = await deploy("MockUSDT", {
     from: deployer.address,

@@ -8,11 +8,16 @@ import {
 
 const deployFunction: DeployFunction = async ({ getNamedAccounts, deployments }) => {
   const { deploy, log } = deployments
-  const usdt = await ethers.getContractAt("MockUSDT", "0x76c89EC523F82e5457f681f8184cd2FFD895B8Cf")
+  let usdt
+  if(network.name = 'hardhat'){
+    usdt = await ethers.getContract("MockUSDT")
+  } else{
+    usdt = await ethers.getContractAt("MockUSDT", "0x76c89EC523F82e5457f681f8184cd2FFD895B8Cf")
+  }
   const [ deployer ] = await ethers.getSigners()
   const constructorArgs = [usdt.address]
   
-  console.log("Deploy EDUflow...")
+  console.log("[DEPLOYER] Deploy EDUflow...")
 
   const contract = await deploy("EducationPlatform", {
     from: deployer.address,
